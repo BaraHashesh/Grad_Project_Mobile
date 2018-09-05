@@ -1,6 +1,7 @@
 package com.grad_project_mobile.activities;
 
 import android.app.Activity;
+import android.content.Intent;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
@@ -35,12 +36,15 @@ public class MainActivity extends AppCompatActivity {
                 Check if IP is valid
                  */
                 if(valid) {
-                    DiscoverAsyncTask discoverAsyncTask = new DiscoverAsyncTask(MainActivity.this);
-                    discoverAsyncTask.execute(ip);
+//                    DiscoverAsyncTask discoverAsyncTask = new DiscoverAsyncTask(MainActivity.this);
+//                    discoverAsyncTask.execute(ip);
+
+                    Intent intent = new Intent(MainActivity.this, ServerSelectActivity.class);
+                    startActivity(intent);
+                    finish();
                 } else {
                     Toast.makeText(getApplicationContext(), "Enter Valid IP Address", Toast.LENGTH_SHORT).show();
                 }
-//                Toast.makeText(getApplicationContext(), ip, Toast.LENGTH_SHORT).show();
             }
         });
 
