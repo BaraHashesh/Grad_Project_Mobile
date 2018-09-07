@@ -97,7 +97,7 @@ public class ServerInfoAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
      * This interface is used to link the item UI elements with methods in other activities
      */
     public interface ServerInfoClickListener {
-        void onServerSelected(ServerRowInfo article, View v);
+        void onServerSelected(ServerRowInfo server, View v);
     }
 
     /**

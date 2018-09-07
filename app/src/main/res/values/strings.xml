@@ -2,5 +2,7 @@
     <string name="app_name">Grad_Project_Mobile</string>
     <string name="activity_main_search_button">Search</string>
     <string name="activity_main_search_text">Enter Base IP (IPv4)</string>
-    <string name="server_row_choose_button">Choose</string>
+    <string name="server_info_item_choose_button">Choose</string>
+    <string name="file_info_item_delete_button">Delete</string>
+    <string name="file_info_item_download_button">Download</string>
 </resources>

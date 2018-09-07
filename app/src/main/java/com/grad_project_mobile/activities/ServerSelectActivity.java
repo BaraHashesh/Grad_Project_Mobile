@@ -10,6 +10,7 @@ import android.widget.Toast;
 import com.grad_project_mobile.R;
 import com.grad_project_mobile.adapters.ServerInfoAdapter;
 import com.grad_project_mobile.client.models.models.ServerRowInfo;
+import com.grad_project_mobile.shared.JsonParser;
 
 import java.util.ArrayList;
 
@@ -30,8 +31,9 @@ public class ServerSelectActivity extends AppCompatActivity implements ServerInf
 
         ArrayList<ServerRowInfo> serverRowInfo = new ArrayList<>();
 
-        serverRowInfo.add(new ServerRowInfo("127.1.1"));
-        serverRowInfo.add(new ServerRowInfo("1.1.1"));
+       serverRowInfo.add(new ServerRowInfo("1.1.1"));
+
+        serverRowInfo.add(new ServerRowInfo("1.2.1"));
 
         serverInfoAdapter = new ServerInfoAdapter(this, serverRowInfo);
         serverInfoAdapter.setListener(this);
@@ -40,7 +42,7 @@ public class ServerSelectActivity extends AppCompatActivity implements ServerInf
     }
 
     @Override
-    public void onServerSelected(ServerRowInfo article, View v) {
-        Toast.makeText(getApplicationContext(), article.getIp(), Toast.LENGTH_SHORT).show();
+    public void onServerSelected(ServerRowInfo server, View v) {
+        Toast.makeText(getApplicationContext(), server.getIp(), Toast.LENGTH_SHORT).show();
     }
 }

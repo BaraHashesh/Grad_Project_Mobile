@@ -21,6 +21,6 @@
         android:layout_weight="1"
         android:textColor="@color/colorWhite"
         android:background="@color/colorPrimary"
-        android:text="@string/server_row_choose_button" />
+        android:text="@string/server_info_item_choose_button" />
 
 </LinearLayout>
