@@ -31,7 +31,7 @@ public class BrowsingClient {
      * @param path Is the path to the directory
      * @return Information about the files in the directory if it exists
      */
-    public FileRowData[] browserRequest(String path) {
+    public String browserRequest(String path) {
         Message request, response;
         try {
             Socket clientSocket = ConnectionBuilder.getInstance().buildClientSocket(this.IP);
@@ -58,7 +58,7 @@ public class BrowsingClient {
              Check if operation was a success
               */
             if (response.isSuccessMessage()) {
-                return JsonParser.getInstance().fromJson(response.getMessageInfo(), FileRowData[].class);
+                return response.getMessageInfo();
             } else {
 
                 return null;

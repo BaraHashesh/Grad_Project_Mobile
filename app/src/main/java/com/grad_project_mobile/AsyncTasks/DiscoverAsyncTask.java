@@ -8,6 +8,7 @@ import android.widget.Toast;
 
 import com.grad_project_mobile.activities.MainActivity;
 import com.grad_project_mobile.client.models.connection.DiscoverySender;
+import com.grad_project_mobile.shared.JsonParser;
 
 public class DiscoverAsyncTask extends AsyncTask<String, String, String> {
 
@@ -33,6 +34,6 @@ public class DiscoverAsyncTask extends AsyncTask<String, String, String> {
 
     @Override
     protected void onPostExecute(String s) {
-        Toast.makeText(this.activity.getApplicationContext(), s, Toast.LENGTH_LONG).show();
+        ((MainActivity)activity).onDiscoverEnd(JsonParser.getInstance().fromJson(s, String[].class));
     }
 }

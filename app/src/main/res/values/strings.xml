@@ -1,8 +1,12 @@
 <resources>
     <string name="app_name">Grad_Project_Mobile</string>
+
     <string name="activity_main_search_button">Search</string>
     <string name="activity_main_search_text">Enter Base IP (IPv4)</string>
+    <string name="activity_main_loading_bar">LOADING</string>
+
     <string name="server_info_item_choose_button">Choose</string>
+
     <string name="file_info_item_delete_button">Delete</string>
     <string name="file_info_item_download_button">Download</string>
 </resources>

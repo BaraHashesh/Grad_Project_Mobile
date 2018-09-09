@@ -1,5 +1,6 @@
 package com.grad_project_mobile.activities;
 
+import android.content.Intent;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
@@ -11,8 +12,10 @@ import com.grad_project_mobile.R;
 import com.grad_project_mobile.adapters.ServerInfoAdapter;
 import com.grad_project_mobile.client.models.models.ServerRowInfo;
 import com.grad_project_mobile.shared.JsonParser;
+import com.grad_project_mobile.shared.ObjectParser;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 
 public class ServerSelectActivity extends AppCompatActivity implements ServerInfoAdapter.ServerInfoClickListener {
 
@@ -29,11 +32,15 @@ public class ServerSelectActivity extends AppCompatActivity implements ServerInf
         serverRecyclerView.setLayoutManager(new LinearLayoutManager(this));
         serverRecyclerView.setHasFixedSize(true);
 
-        ArrayList<ServerRowInfo> serverRowInfo = new ArrayList<>();
+        Intent myIntent = getIntent();
 
-       serverRowInfo.add(new ServerRowInfo("1.1.1"));
+        ArrayList<ServerRowInfo> serverRowInfo = new ArrayList<>(10);
 
-        serverRowInfo.add(new ServerRowInfo("1.2.1"));
+        String[] data = myIntent.getStringArrayExtra("servers");
+
+        for(String ele : data){
+            serverRowInfo.add(new ServerRowInfo(ele));
+        }
 
         serverInfoAdapter = new ServerInfoAdapter(this, serverRowInfo);
         serverInfoAdapter.setListener(this);
