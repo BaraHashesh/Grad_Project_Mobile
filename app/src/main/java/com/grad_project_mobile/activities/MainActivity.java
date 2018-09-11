@@ -1,8 +1,9 @@
 package com.grad_project_mobile.activities;
 
-import android.content.Intent;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
@@ -13,16 +14,22 @@ import android.widget.Toast;
 
 import com.grad_project_mobile.AsyncTasks.DiscoverAsyncTask;
 import com.grad_project_mobile.R;
+import com.grad_project_mobile.adapters.ServerInfoAdapter;
+import com.grad_project_mobile.client.models.models.ServerRowInfo;
 import com.grad_project_mobile.shared.Constants;
-import com.grad_project_mobile.shared.JsonParser;
 
-public class MainActivity extends AppCompatActivity {
+import java.util.ArrayList;
+import java.util.Arrays;
+
+public class MainActivity extends AppCompatActivity implements ServerInfoAdapter.ServerInfoClickListener {
 
 
     Button searchButton;
     EditText ipEditText;
     ProgressBar loadingProgressBar;
     TextView loadingTextView;
+    RecyclerView serverRecyclerView;
+    ServerInfoAdapter serverInfoAdapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -33,6 +40,15 @@ public class MainActivity extends AppCompatActivity {
         ipEditText = findViewById(R.id.activity_main_ip_edit_text);
         loadingProgressBar = findViewById(R.id.activity_main_loading_bar);
         loadingTextView = findViewById(R.id.activity_main_loading_text_view);
+        serverRecyclerView = findViewById(R.id.activity_main_server_recycler_view);
+
+        serverRecyclerView.setLayoutManager(new LinearLayoutManager(this));
+        serverRecyclerView.setHasFixedSize(true);
+
+        serverInfoAdapter = new ServerInfoAdapter(this, new ArrayList<ServerRowInfo>());
+        serverInfoAdapter.setListener(this);
+
+        serverRecyclerView.setAdapter(serverInfoAdapter);
 
         searchButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -48,13 +64,25 @@ public class MainActivity extends AppCompatActivity {
                     DiscoverAsyncTask discoverAsyncTask = new DiscoverAsyncTask(MainActivity.this);
                     discoverAsyncTask.execute(ip);
 
-                    searchButton.setVisibility(View.INVISIBLE);
-                    ipEditText.setVisibility(View.INVISIBLE);
+                    serverRecyclerView.setVisibility(View.INVISIBLE);
 
                     loadingProgressBar.setVisibility(View.VISIBLE);
                     loadingTextView.setVisibility(View.VISIBLE);
                 } else {
                     Toast.makeText(getApplicationContext(), "Enter Valid IP Address", Toast.LENGTH_SHORT).show();
+                }
+
+                /*
+                remove keyboard
+                 */
+                try {
+                    InputMethodManager imm = (InputMethodManager)getSystemService(getApplicationContext()
+                            .INPUT_METHOD_SERVICE);
+
+                    imm.hideSoftInputFromWindow(getCurrentFocus().getWindowToken(), 0);
+
+                } catch (Exception ignore){
+
                 }
             }
         });
@@ -62,6 +90,9 @@ public class MainActivity extends AppCompatActivity {
         findViewById(R.id.activity_main_root).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                /*
+                remove keyboard
+                 */
                 try {
                     InputMethodManager imm = (InputMethodManager)getSystemService(getApplicationContext()
                             .INPUT_METHOD_SERVICE);
@@ -85,19 +116,31 @@ public class MainActivity extends AppCompatActivity {
         Check if servers where found
          */
         if (serverIPs.length == 0) {
-            searchButton.setVisibility(View.VISIBLE);
-            ipEditText.setVisibility(View.VISIBLE);
-
-            loadingProgressBar.setVisibility(View.INVISIBLE);
-            loadingTextView.setVisibility(View.INVISIBLE);
-
             Toast.makeText(getApplicationContext(), "No devices where found", Toast.LENGTH_SHORT).show();
         } else {
-            Intent myIntent = new Intent(this, ServerSelectActivity.class);
-            myIntent.putExtra("servers", serverIPs);
-            startActivity(myIntent);
-            finish();
-
+            Toast.makeText(getApplicationContext(), Arrays.toString(serverIPs), Toast.LENGTH_SHORT).show();
         }
+
+        ArrayList<ServerRowInfo> serverRowInfo = new ArrayList<>(10);
+
+        /*
+        add all servers to server list of the recycler view
+         */
+        for(String ele : serverIPs){
+            serverRowInfo.add(new ServerRowInfo(ele));
+        }
+
+        serverInfoAdapter.setServers(serverRowInfo);
+        serverInfoAdapter.notifyDataSetChanged();
+
+        serverRecyclerView.setVisibility(View.VISIBLE);
+
+        loadingProgressBar.setVisibility(View.INVISIBLE);
+        loadingTextView.setVisibility(View.INVISIBLE);
+    }
+
+    @Override
+    public void onServerSelected(ServerRowInfo server, View v) {
+        Toast.makeText(getApplicationContext(), server.getIp(), Toast.LENGTH_SHORT).show();
     }
 }

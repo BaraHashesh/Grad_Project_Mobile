@@ -107,4 +107,13 @@ public class ServerInfoAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
     public void setListener(ServerInfoClickListener mListener) {
         this.mListener = mListener;
     }
+
+    /**
+     * Set method for servers
+     * @param servers The new list of servers
+     */
+    public void setServers(ArrayList<ServerRowInfo> servers) {
+        this.servers.clear();
+        this.servers.addAll(servers);
+    }
 }
