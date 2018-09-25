@@ -12,6 +12,7 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.grad_project_mobile.AsyncTasks.BrowseAsyncTask;
 import com.grad_project_mobile.AsyncTasks.DiscoverAsyncTask;
 import com.grad_project_mobile.R;
 import com.grad_project_mobile.adapters.ServerInfoAdapter;
@@ -35,6 +36,10 @@ public class MainActivity extends AppCompatActivity implements ServerInfoAdapter
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        System.setProperty("java.net.preferIPv4Stack", "true");
+        System.setProperty("javax.net.ssl.trustStore", "/res/raw/keystore_server");
+        System.setProperty("javax.net.ssl.trustStorePassword", "password");
 
         searchButton = findViewById(R.id.activity_main_search_button);
         ipEditText = findViewById(R.id.activity_main_ip_edit_text);
@@ -141,6 +146,6 @@ public class MainActivity extends AppCompatActivity implements ServerInfoAdapter
 
     @Override
     public void onServerSelected(ServerRowInfo server, View v) {
-        Toast.makeText(getApplicationContext(), server.getIp(), Toast.LENGTH_SHORT).show();
+        new BrowseAsyncTask(this, server.getIp()).execute("");
     }
 }

@@ -1,112 +1,122 @@
 package com.grad_project_mobile.client.models.connection;
 
-import com.grad_project_mobile.client.models.models.FileRowData;
+import android.util.Log;
 
-import com.grad_project_mobile.shared.ConnectionBuilder;
+import com.grad_project_mobile.client.models.models.FileRowData;
+import com.grad_project_mobile.shared.Constants;
 import com.grad_project_mobile.shared.JsonParser;
+import com.grad_project_mobile.shared.Methods;
 import com.grad_project_mobile.shared.models.Message;
 
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
+import org.java_websocket.client.WebSocketClient;
+import org.java_websocket.handshake.ServerHandshake;
+
 import java.net.Socket;
+import java.net.URI;
+import java.util.concurrent.TimeUnit;
 
 /**
- * BrowseClient class is used to browse the storage device and to delete files if required
+ * Class responsible for creating the web socket responsible for handling browsing operations
+ */
+class BrowserWebSocket extends WebSocketClient {
+
+
+    BrowserWebSocket(URI serverUri) {
+        super(serverUri);
+    }
+
+    @Override
+    public void onOpen(ServerHandshake serverHandshake) {
+
+    }
+
+    @Override
+    public void onMessage(String s) {
+        Message replyMessage = JsonParser.getInstance().fromJson(s, Message.class);
+
+        /*
+        Check if replay is a success message
+         */
+        if (replyMessage.isSuccessMessage()) {
+            FileRowData[] files = JsonParser.getInstance()
+                    .fromJson(replyMessage.getMessageInfo(), FileRowData[].class);
+
+            System.out.println(replyMessage.getMessageInfo());
+        }
+        /*
+        Check if replay message is an update message
+         */
+        if (replyMessage.isUpdateMessage()) {
+
+        }
+
+        /*
+        Check if replay message is an error message
+         */
+        else if (replyMessage.isErrorMessage()) {
+
+        }
+    }
+
+    @Override
+    public void onClose(int i, String s, boolean b) {
+
+    }
+
+    @Override
+    public void onError(Exception e) {
+        System.out.println(e);
+        e.printStackTrace();
+    }
+}
+
+/**
+ * Class responsible for handling browsing operations
  */
 public class BrowsingClient {
-    private String IP;
+    private BrowserWebSocket browserWebSocket;
 
     /**
-     * Constructor for the BrowsingClient object for a specific storage device
+     * Constructor for the BrowsingClient
      *
-     * @param hostIP Is the IP of the storage device
+     * @param serverIP is the ip of the server
      */
-    public BrowsingClient(String hostIP) {
-        this.IP = hostIP;
-    }
+    public BrowsingClient(String serverIP) {
 
-    /**
-     * Method used to fetch the information of files under a certain directory
-     *
-     * @param path Is the path to the directory
-     * @return Information about the files in the directory if it exists
-     */
-    public String browserRequest(String path) {
-        Message request, response;
         try {
-            Socket clientSocket = ConnectionBuilder.getInstance().buildClientSocket(this.IP);
+            browserWebSocket = new BrowserWebSocket(new URI("wss://" +
+                    serverIP + ":" + Constants.TCP_PORT));
 
-            DataOutputStream dataOutputStream = ConnectionBuilder.getInstance()
-                    .buildOutputStream(clientSocket);
-
-            DataInputStream dataInputStream = ConnectionBuilder.getInstance()
-                    .buildInputStream(clientSocket);
-
-            request = new Message();
-            request.createBrowseMessage(path);
-
-            dataOutputStream.writeUTF(JsonParser.getInstance().toJson(request));
-            dataOutputStream.flush();
-
-            response = JsonParser.getInstance().fromJson(dataInputStream.readUTF(), Message.class);
-
-            clientSocket.close();
-            dataInputStream.close();
-            dataOutputStream.close();
-
-            /*
-             Check if operation was a success
-              */
-            if (response.isSuccessMessage()) {
-                return response.getMessageInfo();
-            } else {
-
-                return null;
-            }
+            browserWebSocket.setSocket(Methods.getInstance().buildFactory().createSocket());
+//            browserWebSocket.setSocket(new Socket());
+            browserWebSocket.connectBlocking(2000, TimeUnit.MILLISECONDS);
         } catch (Exception e) {
             e.printStackTrace();
-
-            return null;
         }
     }
 
     /**
-     * Method used to delete a file/directory on the storage device
+     * Method used to send a browsing request to the server
      *
-     * @param path Is the path to the file/directory the storage device
+     * @param filePath Is the path to the directory to browse
      */
-    public void deleteRequest(String path) {
-        Message request, response;
-        try {
-            Socket clientSocket = ConnectionBuilder.getInstance().buildClientSocket(this.IP);
+    public void browse(String filePath) {
+        Message browseMessage = new Message();
+        browseMessage.createBrowseMessage(filePath);
 
-            DataOutputStream dataOutputStream = ConnectionBuilder.getInstance()
-                    .buildOutputStream(clientSocket);
+        this.browserWebSocket.send(JsonParser.getInstance().toJson(browseMessage));
+    }
 
-            DataInputStream dataInputStream = ConnectionBuilder.getInstance()
-                    .buildInputStream(clientSocket);
 
-            request = new Message();
-            request.createDeleteMessage(path);
+    /**
+     * Method used to send a delete request to the server
+     *
+     * @param filePath Is the path of the file to be deleted
+     */
+    public void delete(String filePath) {
+        Message browseMessage = new Message();
+        browseMessage.createDeleteMessage(filePath);
 
-            dataOutputStream.writeUTF(JsonParser.getInstance().toJson(request));
-            dataOutputStream.flush();
-
-            response = JsonParser.getInstance().fromJson(dataInputStream.readUTF(), Message.class);
-
-            clientSocket.close();
-            dataInputStream.close();
-            dataOutputStream.close();
-
-            // check if operation is possible
-            if (response.isErrorMessage()) {
-                /*
-                 pop up code here
-                 */
-
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        this.browserWebSocket.send(JsonParser.getInstance().toJson(browseMessage));
     }
 }

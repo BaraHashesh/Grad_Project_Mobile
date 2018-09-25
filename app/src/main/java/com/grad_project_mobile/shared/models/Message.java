@@ -1,6 +1,5 @@
 package com.grad_project_mobile.shared.models;
 
-
 import com.grad_project_mobile.shared.Constants;
 
 /**
@@ -84,6 +83,7 @@ public class Message {
      *
      * @return a boolean that indicates if the message is a file info message or not
      */
+    @SuppressWarnings("unused")
     public boolean isFileInfoMessage() {
         return this.messageType == Constants.FILE_INFO_MESSAGE;
     }
@@ -95,6 +95,15 @@ public class Message {
      */
     public boolean isStreamEndMessage() {
         return this.messageType == Constants.STREAM_END_MESSAGE;
+    }
+
+    /**
+     * Method used for checking if current message is an update message
+     *
+     * @return a boolean that indicates if the message is an update message or not
+     */
+    public boolean isUpdateMessage() {
+        return this.messageType == Constants.UPDATE_MESSAGE;
     }
 
     /**
@@ -177,6 +186,15 @@ public class Message {
         this.messageInfo = info;
     }
 
+    /**
+     * method used to create an update message
+     *
+     * @param info Some extra info for the message (usually path to update)
+     */
+    public void createUpdateMessage(String info) {
+        this.messageType = Constants.UPDATE_MESSAGE;
+        this.messageInfo = info;
+    }
 
     @Override
     public String toString() {

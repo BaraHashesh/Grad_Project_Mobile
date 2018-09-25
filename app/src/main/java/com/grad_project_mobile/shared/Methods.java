@@ -1,6 +1,14 @@
 package com.grad_project_mobile.shared;
 
+import android.annotation.SuppressLint;
+
+import javax.net.ssl.KeyManagerFactory;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLSocketFactory;
+import javax.net.ssl.TrustManagerFactory;
 import java.io.File;
+import java.io.InputStream;
+import java.security.KeyStore;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
@@ -29,9 +37,8 @@ public class Methods {
      * Method used to delete a given file
      *
      * @param file Is the file to be deleted
-     * @return A boolean that indicates wither delete was successful or not
      */
-    public boolean deleteFile(File file) {
+    public void deleteFile(File file) {
         try {
             /*
             Check if file Exists
@@ -44,17 +51,15 @@ public class Methods {
                     /*
                     For loop to iterate over all child files
                      */
-                    for (File childFile : file.listFiles()) {
+                    for (File childFile : Objects.requireNonNull(file.listFiles())) {
                         deleteFile(childFile);
                     }
                 }
-                return file.delete();
-            } else {
-                return false;
+
+                file.delete();
             }
         } catch (Exception e) {
             e.printStackTrace();
-            return false;
         }
     }
 
@@ -75,7 +80,7 @@ public class Methods {
             /*
             For loop to iterate over all child files
              */
-            for (File childFile : file.listFiles()) {
+            for (File childFile : Objects.requireNonNull(file.listFiles())) {
 
                 /*
                 Check if child file is a directory
@@ -139,6 +144,7 @@ public class Methods {
      * @param milliSecond Is the time in milli seconds
      * @return A string representing the time in HH:mm:SS format
      */
+    @SuppressLint("DefaultLocale")
     public String reduceTime(long milliSecond) {
         return String.format("%02d hours & %02d minutes & %02d seconds",
                 TimeUnit.MILLISECONDS.toHours(milliSecond),
@@ -148,5 +154,33 @@ public class Methods {
 
                 TimeUnit.MILLISECONDS.toSeconds(milliSecond) -
                         TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes(milliSecond)));
+    }
+
+    /**
+     * Method used to build the SSLSocketFactory
+     *
+     * @return An SSLSocketFactory
+     * @throws Exception Unable to create factory for any given reason
+     */
+    public SSLSocketFactory buildFactory() throws Exception {
+        String STORETYPE = Constants.KEYSTORE_TYPE;
+        InputStream KEYSTORE = Methods.class.getResourceAsStream("/res/raw/key_store_mobile");
+
+        String STORE_PASSWORD = Constants.KEYSTORE_PASSWORD;
+        String KEY_PASSWORD = Constants.KEYSTORE_PASSWORD;
+
+        KeyStore ks = KeyStore.getInstance("BKS");
+        ks.load(KEYSTORE, STORE_PASSWORD.toCharArray());
+
+        KeyManagerFactory kmf = KeyManagerFactory.getInstance("PKIX");
+        kmf.init(ks, KEY_PASSWORD.toCharArray());
+        TrustManagerFactory tmf = TrustManagerFactory.getInstance("PKIX");
+        tmf.init(ks);
+
+        SSLContext sslContext = null;
+        sslContext = SSLContext.getInstance("TLS");
+        sslContext.init(kmf.getKeyManagers(), tmf.getTrustManagers(), null);
+
+        return sslContext.getSocketFactory();
     }
 }

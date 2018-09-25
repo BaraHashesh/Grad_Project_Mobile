@@ -1,105 +1,124 @@
 package com.grad_project_mobile.client.models.connection;
 
-import com.grad_project_mobile.shared.ConnectionBuilder;
+import com.grad_project_mobile.client.models.models.FileRowData;
+import com.grad_project_mobile.shared.Constants;
 import com.grad_project_mobile.shared.FileTransfer;
 import com.grad_project_mobile.shared.JsonParser;
+import com.grad_project_mobile.shared.Methods;
 import com.grad_project_mobile.shared.models.Message;
 
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
+import org.java_websocket.client.WebSocketClient;
+import org.java_websocket.handshake.ServerHandshake;
+
 import java.io.File;
-import java.net.Socket;
+import java.net.URI;
+import java.util.concurrent.TimeUnit;
+
 
 /**
- * UploadClient class is used to upload files to storage device on a separate thread
+ * Class responsible for creating the web socket responsible for handling upload operations
  */
-public class UploadClient implements Runnable {
-    private File file;
-    private String locationToSave;
-    private String IP;
-    private Thread thread;
+class UploadWebSocket extends WebSocketClient {
+
+    private File fileToUpload;
 
     /**
-     * Constructor for the UploadClient object for a specific storage device
+     * Constructor for the {@link UploadWebSocket}
      *
-     * @param hostIP Is the IP of the storage device
+     * @param serverUri Is the server URI
      */
-    public UploadClient(String hostIP) {
-        this.IP = hostIP;
+    UploadWebSocket(URI serverUri) {
+        super(serverUri);
     }
 
-    /**
-     * Initialize method for the variables
-     * also start thread operations
-     *
-     * @param file           Is file to be uploaded
-     * @param locationToSave Is the location to save file under within the storage device
-     */
-    public void start(File file, String locationToSave) {
-        this.file = file;
-        this.locationToSave = locationToSave;
+    @Override
+    public void onOpen(ServerHandshake serverHandshake) {
+
+    }
+
+    @Override
+    public void onMessage(String s) {
+        Message responseMessage = JsonParser.getInstance().fromJson(s, Message.class);
 
         /*
-        Check if the thread is not running
+        Check if message is a success message
          */
-        if (thread == null) {
-            thread = new Thread(this);
-            thread.start();
+        if (responseMessage.isSuccessMessage()) {
+            FileTransfer fileTransfer = new FileTransfer();
+
+            new Thread(()->{
+                fileTransfer.send(this, this.fileToUpload);
+
+                responseMessage.createStreamEndMessage("");
+
+                send(JsonParser.getInstance().toJson(responseMessage));
+            }).start();
+        }
+        /*
+        Check if error message
+         */
+        else if (responseMessage.isErrorMessage()) {
+
         }
     }
 
-    /**
-     * Upload operations are done here
-     */
     @Override
-    public void run() {
-        Message request, response;
+    public void onClose(int i, String s, boolean b) {
+
+    }
+
+    @Override
+    public void onError(Exception e) {
+
+    }
+
+    /**
+     * set method for fileToUpload
+     *
+     * @param fileToUpload Is the file/folder to upload
+     */
+    void setFileToUpload(File fileToUpload) {
+        this.fileToUpload = fileToUpload;
+    }
+}
+
+/**
+ * Class responsible for handling upload operations
+ */
+public class UploadClient {
+    private UploadWebSocket uploadWebSocket;
+
+    /**
+     * Constructor for the {@link UploadClient}
+     *
+     * @param serverIP Is the server IP
+     */
+    public UploadClient(String serverIP) {
         try {
-            Socket clientSocket = ConnectionBuilder.getInstance().buildClientSocket(this.IP);
+            this.uploadWebSocket = new UploadWebSocket(
+                    new URI("wss://" + serverIP + ":" + Constants.TCP_PORT)
+            );
 
-            DataOutputStream dataOutputStream = ConnectionBuilder.getInstance()
-                    .buildOutputStream(clientSocket);
-
-            DataInputStream dataInputStream = ConnectionBuilder.getInstance()
-                    .buildInputStream(clientSocket);
-
-            request = new Message();
-            request.createUploadMessage(locationToSave);
-
-            dataOutputStream.writeUTF(JsonParser.getInstance().toJson(request));
-            dataOutputStream.flush();
-
-            response = JsonParser.getInstance().fromJson(dataInputStream.readUTF(), Message.class);
-
-            /*
-            Check if operation was possible
-             */
-            if (response.isErrorMessage()) {
-
-                /*
-                pop up code here
-                 */
-
-            } else {
-                String parent = this.file.getParent();
-
-                FileTransfer fileTransfer = new FileTransfer();
-
-                fileTransfer.sendFiles(dataOutputStream, this.file, parent);
-
-                Message streamEndMessage = new Message();
-                streamEndMessage.createStreamEndMessage("");
-
-                dataOutputStream.writeUTF(JsonParser.getInstance().toJson(streamEndMessage));
-                dataOutputStream.flush();
-            }
-
-            clientSocket.close();
-            dataInputStream.close();
-            dataOutputStream.close();
-
+            this.uploadWebSocket.setSocket(Methods.getInstance().buildFactory().createSocket());
+            this.uploadWebSocket.connectBlocking(2000, TimeUnit.MILLISECONDS);
         } catch (Exception e) {
             e.printStackTrace();
         }
+
+    }
+
+    /**
+     * Method used to start upload operation
+     *
+     * @param fileToUpload   Is the file/folder to upload
+     * @param locationToSave Is where to save the file/folder on the storage device
+     */
+    public void upload(File fileToUpload, String locationToSave) {
+        this.uploadWebSocket.setFileToUpload(fileToUpload);
+
+        Message requestMessage = new Message();
+        requestMessage.createUploadMessage(locationToSave);
+
+        this.uploadWebSocket.send(JsonParser.getInstance().toJson(requestMessage));
     }
 }

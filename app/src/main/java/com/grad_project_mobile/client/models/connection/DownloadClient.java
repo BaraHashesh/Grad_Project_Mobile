@@ -1,100 +1,142 @@
 package com.grad_project_mobile.client.models.connection;
 
-import com.grad_project_mobile.shared.ConnectionBuilder;
+
+import com.grad_project_mobile.shared.Constants;
 import com.grad_project_mobile.shared.FileTransfer;
 import com.grad_project_mobile.shared.JsonParser;
+import com.grad_project_mobile.shared.Methods;
 import com.grad_project_mobile.shared.models.Message;
 
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
-import java.net.Socket;
+import org.java_websocket.client.WebSocketClient;
+import org.java_websocket.handshake.ServerHandshake;
+
+import java.net.URI;
+import java.nio.ByteBuffer;
+import java.util.concurrent.TimeUnit;
 
 /**
- * DownloadClient class is used to download files from server on a separate thread
+ * Class responsible for creating the web socket responsible for handling download operations
  */
-public class DownloadClient implements Runnable {
-    private String path;
-    private String locationToSave;
-    private String IP;
-    private Thread thread;
+class DownloadWebSocket extends WebSocketClient {
+
+    private FileTransfer fileTransfer;
+    private String fileLocation;
+    private boolean status;
 
     /**
-     * Constructor for the DownloadClient object for a specific storage device
+     * Constructor for the {@link DownloadWebSocket}
      *
-     * @param hostIP Is the IP of the storage device
+     * @param serverUri The URI of the server
      */
-    public DownloadClient(String hostIP) {
-        this.IP = hostIP;
+    DownloadWebSocket(URI serverUri) {
+        super(serverUri);
     }
 
-    /**
-     * Initialize method for the variables
-     * also start thread operations
-     *
-     * @param path           Is the path of the file to be downloaded
-     * @param locationToSave is the location to save file under within the user device
-     */
-    public void start(String path, String locationToSave) {
-        this.path = path;
-        this.locationToSave = locationToSave;
+    @Override
+    public void onOpen(ServerHandshake serverHandshake) {
+
+    }
+
+    @Override
+    public void onMessage(String s) {
+        Message responseMessage = JsonParser.getInstance().fromJson(s, Message.class);
 
         /*
-        Check if the thread is not running
+        check if message is a success message
          */
-        if (thread == null) {
-            thread = new Thread(this);
-            thread.start();
+        if (responseMessage.isSuccessMessage()) {
+            this.fileTransfer = new FileTransfer();
+
+            this.status = false;
+        }
+        /*
+        check if error message
+         */
+        else if (responseMessage.isErrorMessage()) {
+            close();
+        }
+        /*
+        check if file info message
+         */
+        else if (responseMessage.isFileInfoMessage()) {
+            this.fileTransfer.receive(responseMessage.getMessageInfo(), this.fileLocation);
+        }
+        /*
+        Check if download is done
+         */
+        else if (responseMessage.isStreamEndMessage()) {
+            this.status = true;
+            close();
         }
     }
 
-    /**
-     * Download operations are done here
-     */
     @Override
-    public void run() {
-        Message request, response;
+    public void onMessage(ByteBuffer bytes) {
+        this.fileTransfer.receive(bytes.array());
+    }
+
+    @Override
+    public void onClose(int i, String s, boolean b) {
+        /*
+        Check if download was completed
+         */
+        if (!this.status)
+            this.fileTransfer.deleteFile();
+    }
+
+    @Override
+    public void onError(Exception e) {
+
+    }
+
+    /**
+     * Set method for fileLocation
+     *
+     * @param fileLocation The location which is used to save files/folders under
+     */
+    public void setFileLocation(String fileLocation) {
+        this.fileLocation = fileLocation;
+    }
+}
+
+/**
+ * Class responsible for handling download operations
+ */
+public class DownloadClient {
+    private DownloadWebSocket downloadWebSocket;
+
+    /**
+     * Constructor for {@link DownloadClient}
+     *
+     * @param serverIP The IP of the server
+     */
+    public DownloadClient(String serverIP) {
         try {
-            Socket clientSocket = ConnectionBuilder.getInstance().buildClientSocket(this.IP);
+            this.downloadWebSocket = new DownloadWebSocket(
+                    new URI("wss://" + serverIP + ":" + Constants.TCP_PORT)
+            );
 
-            DataOutputStream dataOutputStream = ConnectionBuilder.getInstance()
-                    .buildOutputStream(clientSocket);
+            downloadWebSocket.setSocket(Methods.getInstance().buildFactory().createSocket());
 
-            DataInputStream dataInputStream = ConnectionBuilder.getInstance()
-                    .buildInputStream(clientSocket);
-
-
-            request = new Message();
-            request.createDownloadMessage(path);
-
-            dataOutputStream.writeUTF(JsonParser.getInstance().toJson(request));
-            dataOutputStream.flush();
-
-            response = JsonParser.getInstance().fromJson(dataInputStream.readUTF(), Message.class);
-
-            /*
-             Check if operation was possible
-              */
-            if (response.isErrorMessage()) {
-
-                /*
-                pop up code here
-                 */
-
-            } else {
-
-                FileTransfer fileTransfer = new FileTransfer();
-
-                long size = Long.parseLong(response.getMessageInfo());
-
-                fileTransfer.receiveFiles(dataInputStream, locationToSave);
-            }
-
-            dataInputStream.close();
-            dataOutputStream.close();
-            clientSocket.close();
-
+            this.downloadWebSocket.connectBlocking(2000, TimeUnit.MILLISECONDS);
         } catch (Exception e) {
             e.printStackTrace();
         }
+
+    }
+
+    /**
+     * Method used to download the file
+     *
+     * @param locationToSaveUnder Is the location to save the file under
+     * @param fileToDownload      Is the path of the file/folder to download
+     */
+    public void download(String locationToSaveUnder, String fileToDownload) {
+        Message requestMessage = new Message();
+        requestMessage.createDownloadMessage(fileToDownload);
+
+        this.downloadWebSocket.setFileLocation(locationToSaveUnder);
+
+        this.downloadWebSocket.send(JsonParser.getInstance().toJson(requestMessage));
     }
 }
