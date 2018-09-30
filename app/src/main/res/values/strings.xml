@@ -9,4 +9,9 @@
 
     <string name="file_info_item_delete_button">Delete</string>
     <string name="file_info_item_download_button">Download</string>
+
+    <string name="browser_activity_back_button">Back</string>
+    <string name="browser_activity_refresh_button">Refresh</string>
 </resources>
+
+

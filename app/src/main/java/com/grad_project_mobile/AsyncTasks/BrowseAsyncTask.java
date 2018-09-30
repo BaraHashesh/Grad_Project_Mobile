@@ -5,21 +5,29 @@ import android.os.AsyncTask;
 import android.util.Log;
 import android.widget.Toast;
 
+import com.grad_project_mobile.BrowserUpdater;
 import com.grad_project_mobile.client.models.connection.BrowsingClient;
 
 public class BrowseAsyncTask extends AsyncTask<String, String, String> {
 
-    private Activity activity;
+    private BrowserUpdater activity;
     private String serverIP;
+    private static BrowsingClient browsingClient;
 
-    public BrowseAsyncTask(Activity activity, String IP) {
+    public BrowseAsyncTask(BrowserUpdater activity, String IP) {
         this.activity=activity;
         this.serverIP = IP;
     }
 
     @Override
     protected String doInBackground(String... strings) {
-        new BrowsingClient(this.serverIP).browse(strings[0]);
+        /*
+        Construct connection if not already connected
+         */
+        if(browsingClient == null)
+            browsingClient = new BrowsingClient(activity,this.serverIP);
+
+        browsingClient.browse(strings[0]);
 
         return "";
     }

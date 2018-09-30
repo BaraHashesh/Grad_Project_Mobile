@@ -103,9 +103,9 @@ public class FileInfoAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
         Check if file is directory
          */
         if(files.get(position).isDirectory()){
-            ((ViewHolder)holder).fileIcon.setBackgroundResource(R.drawable.folder);
+            ((ViewHolder)holder).fileIcon.setBackgroundResource(R.mipmap.folder);
         } else {
-            ((ViewHolder)holder).fileIcon.setBackgroundResource(R.drawable.file);
+            ((ViewHolder)holder).fileIcon.setBackgroundResource(R.mipmap.file);
         }
     }
 
@@ -129,5 +129,14 @@ public class FileInfoAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
      */
     public void setListener(FileInfoClickListener mListener) {
         this.mListener = mListener;
+    }
+
+    /**
+     * Set method for files
+     * @param files The new list of files
+     */
+    public void setFiles(ArrayList<FileRowData> files) {
+        this.files.clear();
+        this.files.addAll(files);
     }
 }

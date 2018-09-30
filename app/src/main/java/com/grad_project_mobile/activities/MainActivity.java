@@ -1,5 +1,6 @@
 package com.grad_project_mobile.activities;
 
+import android.content.Intent;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
@@ -14,6 +15,7 @@ import android.widget.Toast;
 
 import com.grad_project_mobile.AsyncTasks.BrowseAsyncTask;
 import com.grad_project_mobile.AsyncTasks.DiscoverAsyncTask;
+import com.grad_project_mobile.BrowserUpdater;
 import com.grad_project_mobile.R;
 import com.grad_project_mobile.adapters.ServerInfoAdapter;
 import com.grad_project_mobile.client.models.models.ServerRowInfo;
@@ -146,6 +148,9 @@ public class MainActivity extends AppCompatActivity implements ServerInfoAdapter
 
     @Override
     public void onServerSelected(ServerRowInfo server, View v) {
-        new BrowseAsyncTask(this, server.getIp()).execute("");
+        Intent myIntent = new Intent(MainActivity.this, BrowseActivity.class);
+        myIntent.putExtra("serverIP", server.getIp());
+        startActivity(myIntent);
+        finish();
     }
 }

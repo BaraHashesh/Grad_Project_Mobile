@@ -2,6 +2,7 @@ package com.grad_project_mobile.client.models.connection;
 
 import android.util.Log;
 
+import com.grad_project_mobile.BrowserUpdater;
 import com.grad_project_mobile.client.models.models.FileRowData;
 import com.grad_project_mobile.shared.Constants;
 import com.grad_project_mobile.shared.JsonParser;
@@ -19,10 +20,15 @@ import java.util.concurrent.TimeUnit;
  * Class responsible for creating the web socket responsible for handling browsing operations
  */
 class BrowserWebSocket extends WebSocketClient {
+    private BrowserUpdater browserUpdater;
 
-
-    BrowserWebSocket(URI serverUri) {
+    private BrowserWebSocket(URI serverUri) {
         super(serverUri);
+    }
+
+    BrowserWebSocket(BrowserUpdater browserUpdater, URI serverUri) {
+        this(serverUri);
+        this.browserUpdater = browserUpdater;
     }
 
     @Override
@@ -41,20 +47,20 @@ class BrowserWebSocket extends WebSocketClient {
             FileRowData[] files = JsonParser.getInstance()
                     .fromJson(replyMessage.getMessageInfo(), FileRowData[].class);
 
-            System.out.println(replyMessage.getMessageInfo());
+            this.browserUpdater.update(files, true);
         }
         /*
         Check if replay message is an update message
          */
         if (replyMessage.isUpdateMessage()) {
-
+            this.browserUpdater.update(replyMessage.getMessageInfo());
         }
 
         /*
         Check if replay message is an error message
          */
         else if (replyMessage.isErrorMessage()) {
-
+            this.browserUpdater.update(null, false);
         }
     }
 
@@ -81,10 +87,10 @@ public class BrowsingClient {
      *
      * @param serverIP is the ip of the server
      */
-    public BrowsingClient(String serverIP) {
+    public BrowsingClient(BrowserUpdater browserUpdater, String serverIP) {
 
         try {
-            browserWebSocket = new BrowserWebSocket(new URI("wss://" +
+            browserWebSocket = new BrowserWebSocket(browserUpdater, new URI("wss://" +
                     serverIP + ":" + Constants.TCP_PORT));
 
             browserWebSocket.setSocket(Methods.getInstance().buildFactory().createSocket());
