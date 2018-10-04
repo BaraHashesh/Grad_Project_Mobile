@@ -8,6 +8,7 @@ import android.support.v7.widget.RecyclerView;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.grad_project_mobile.AsyncTasks.BrowseAsyncTask;
 import com.grad_project_mobile.BrowserUpdater;
@@ -85,6 +86,8 @@ public class BrowseActivity extends AppCompatActivity
                 fileInfoAdapter.setFiles(result);
 
                 fileInfoAdapter.notifyDataSetChanged();
+            } else {
+                Toast.makeText(getApplicationContext(), "Error", Toast.LENGTH_SHORT).show();
             }
         });
     }
@@ -103,7 +106,7 @@ public class BrowseActivity extends AppCompatActivity
 
     @Override
     public void onFileDelete(FileRowData file, View v) {
-
+        new BrowseAsyncTask(this, serverIP).execute(file.getPath());
     }
 
     @Override
