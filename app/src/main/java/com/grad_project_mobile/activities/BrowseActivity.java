@@ -6,6 +6,7 @@ import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.View;
+import android.widget.Button;
 import android.widget.TextView;
 
 import com.grad_project_mobile.AsyncTasks.BrowseAsyncTask;
@@ -31,6 +32,9 @@ public class BrowseActivity extends AppCompatActivity
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_browse);
 
+        Button refreshButton = findViewById(R.id.browser_activity_refresh_button);
+        Button backButton = findViewById(R.id.browser_activity_back_button);
+
         Intent myIntent = getIntent();
 
         serverIP = myIntent.getStringExtra("serverIP");
@@ -45,6 +49,25 @@ public class BrowseActivity extends AppCompatActivity
         fileInfoAdapter.setListener(this);
 
         recyclerView.setAdapter(fileInfoAdapter);
+
+        backButton.setOnClickListener(v -> {
+            /*
+            Check if the pathList is empty
+            */
+            if (this.pathList.size() != 0) {
+                // get previous path and remove if from the path list
+                String path = this.pathList.remove(this.pathList.size() - 1);
+
+                new BrowseAsyncTask(this, serverIP).execute(path);
+
+                pathTextView.setText(path);
+            }
+        });
+
+        refreshButton.setOnClickListener(v -> {
+            new BrowseAsyncTask(this, serverIP).execute(pathTextView.getText().toString());
+        });
+
 
         new BrowseAsyncTask(this, serverIP).execute("");
 
@@ -68,7 +91,14 @@ public class BrowseActivity extends AppCompatActivity
 
     @Override
     public void update(String pathToUpdate) {
-
+        runOnUiThread(() -> {
+            /*
+            Check if the folder which was update is of importance to the current folder
+             */
+            if (pathTextView.getText().toString().contains(pathToUpdate)) {
+                new BrowseAsyncTask(this, serverIP).execute(pathTextView.getText().toString());
+            }
+        });
     }
 
     @Override

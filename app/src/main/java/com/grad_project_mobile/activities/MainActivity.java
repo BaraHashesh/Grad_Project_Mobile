@@ -94,23 +94,20 @@ public class MainActivity extends AppCompatActivity implements ServerInfoAdapter
             }
         });
 
-        findViewById(R.id.activity_main_root).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                /*
-                remove keyboard
-                 */
-                try {
-                    InputMethodManager imm = (InputMethodManager)getSystemService(getApplicationContext()
-                            .INPUT_METHOD_SERVICE);
+        findViewById(R.id.activity_main_root).setOnClickListener(v -> {
+            /*
+            remove keyboard
+             */
+            try {
+                InputMethodManager imm = (InputMethodManager)getSystemService(getApplicationContext()
+                        .INPUT_METHOD_SERVICE);
 
-                    imm.hideSoftInputFromWindow(getCurrentFocus().getWindowToken(), 0);
+                imm.hideSoftInputFromWindow(getCurrentFocus().getWindowToken(), 0);
 
-                } catch (Exception ignore){
-
-                }
+            } catch (Exception ignore){
 
             }
+
         });
     }
 
