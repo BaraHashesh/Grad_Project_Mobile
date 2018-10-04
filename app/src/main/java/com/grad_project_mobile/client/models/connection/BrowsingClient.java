@@ -1,8 +1,6 @@
 package com.grad_project_mobile.client.models.connection;
 
-import android.util.Log;
-
-import com.grad_project_mobile.BrowserUpdater;
+import com.grad_project_mobile.activities.BrowserUpdater;
 import com.grad_project_mobile.client.models.models.FileRowData;
 import com.grad_project_mobile.shared.Constants;
 import com.grad_project_mobile.shared.JsonParser;
@@ -12,7 +10,6 @@ import com.grad_project_mobile.shared.models.Message;
 import org.java_websocket.client.WebSocketClient;
 import org.java_websocket.handshake.ServerHandshake;
 
-import java.net.Socket;
 import java.net.URI;
 import java.util.concurrent.TimeUnit;
 
@@ -61,17 +58,17 @@ class BrowserWebSocket extends WebSocketClient {
          */
         else if (replyMessage.isErrorMessage()) {
             this.browserUpdater.update(null, false);
+            browserUpdater.makeMessages("File Not Found/Unavailable");
         }
     }
 
     @Override
     public void onClose(int i, String s, boolean b) {
-
+        browserUpdater.makeMessages("Connection to Server was lost");
     }
 
     @Override
     public void onError(Exception e) {
-        System.out.println(e);
         e.printStackTrace();
     }
 }
@@ -98,6 +95,8 @@ public class BrowsingClient {
             browserWebSocket.connectBlocking(2000, TimeUnit.MILLISECONDS);
         } catch (Exception e) {
             e.printStackTrace();
+
+            browserUpdater.makeMessages("Unable to connect to server");
         }
     }
 

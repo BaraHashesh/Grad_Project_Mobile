@@ -13,9 +13,7 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.grad_project_mobile.AsyncTasks.BrowseAsyncTask;
 import com.grad_project_mobile.AsyncTasks.DiscoverAsyncTask;
-import com.grad_project_mobile.BrowserUpdater;
 import com.grad_project_mobile.R;
 import com.grad_project_mobile.adapters.ServerInfoAdapter;
 import com.grad_project_mobile.client.models.models.ServerRowInfo;

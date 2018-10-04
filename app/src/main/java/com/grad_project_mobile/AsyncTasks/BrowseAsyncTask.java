@@ -1,11 +1,8 @@
 package com.grad_project_mobile.AsyncTasks;
 
-import android.app.Activity;
 import android.os.AsyncTask;
-import android.util.Log;
-import android.widget.Toast;
 
-import com.grad_project_mobile.BrowserUpdater;
+import com.grad_project_mobile.activities.BrowserUpdater;
 import com.grad_project_mobile.client.models.connection.BrowsingClient;
 
 public class BrowseAsyncTask extends AsyncTask<String, String, String> {

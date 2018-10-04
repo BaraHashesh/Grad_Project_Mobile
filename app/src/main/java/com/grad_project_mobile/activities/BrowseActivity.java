@@ -1,6 +1,7 @@
 package com.grad_project_mobile.activities;
 
 import android.content.Intent;
+import android.os.Environment;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
@@ -11,7 +12,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.grad_project_mobile.AsyncTasks.BrowseAsyncTask;
-import com.grad_project_mobile.BrowserUpdater;
+import com.grad_project_mobile.AsyncTasks.DownloadAsyncTask;
 import com.grad_project_mobile.R;
 import com.grad_project_mobile.adapters.FileInfoAdapter;
 import com.grad_project_mobile.client.models.models.FileRowData;
@@ -27,6 +28,7 @@ public class BrowseActivity extends AppCompatActivity
     ArrayList<String> pathList;
     String serverIP;
     TextView pathTextView;
+    String downloadPath;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -73,6 +75,11 @@ public class BrowseActivity extends AppCompatActivity
         new BrowseAsyncTask(this, serverIP).execute("");
 
         pathList = new ArrayList<>(10);
+        
+        downloadPath = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).toString() + "/";
+        
+        //// TODO: 10/4/18 Add upload function
+
     }
 
     @Override
@@ -86,8 +93,6 @@ public class BrowseActivity extends AppCompatActivity
                 fileInfoAdapter.setFiles(result);
 
                 fileInfoAdapter.notifyDataSetChanged();
-            } else {
-                Toast.makeText(getApplicationContext(), "Error", Toast.LENGTH_SHORT).show();
             }
         });
     }
@@ -105,13 +110,20 @@ public class BrowseActivity extends AppCompatActivity
     }
 
     @Override
+    public void makeMessages(String msg) {
+        runOnUiThread(() -> {
+            Toast.makeText(getApplicationContext(), msg, Toast.LENGTH_SHORT).show();
+        });
+    }
+
+    @Override
     public void onFileDelete(FileRowData file, View v) {
         new BrowseAsyncTask(this, serverIP).execute(file.getPath());
     }
 
     @Override
     public void onFileDownload(FileRowData file, View v) {
-
+        new DownloadAsyncTask(this, serverIP).execute(downloadPath, file.getPath());
     }
 
     @Override

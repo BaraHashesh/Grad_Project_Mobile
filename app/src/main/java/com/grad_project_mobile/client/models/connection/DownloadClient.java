@@ -1,6 +1,7 @@
 package com.grad_project_mobile.client.models.connection;
 
 
+import com.grad_project_mobile.activities.BrowserUpdater;
 import com.grad_project_mobile.shared.Constants;
 import com.grad_project_mobile.shared.FileTransfer;
 import com.grad_project_mobile.shared.JsonParser;
@@ -22,6 +23,7 @@ class DownloadWebSocket extends WebSocketClient {
     private FileTransfer fileTransfer;
     private String fileLocation;
     private boolean status;
+    private BrowserUpdater browserUpdater;
 
     /**
      * Constructor for the {@link DownloadWebSocket}
@@ -30,6 +32,11 @@ class DownloadWebSocket extends WebSocketClient {
      */
     DownloadWebSocket(URI serverUri) {
         super(serverUri);
+    }
+
+    DownloadWebSocket(BrowserUpdater browserUpdater, URI serverUri){
+        this(serverUri);
+        this.browserUpdater = browserUpdater;
     }
 
     @Override
@@ -54,6 +61,8 @@ class DownloadWebSocket extends WebSocketClient {
          */
         else if (responseMessage.isErrorMessage()) {
             close();
+
+            browserUpdater.makeMessages("Unable to find file/folder");
         }
         /*
         check if file info message
@@ -110,9 +119,10 @@ public class DownloadClient {
      *
      * @param serverIP The IP of the server
      */
-    public DownloadClient(String serverIP) {
+    public DownloadClient(BrowserUpdater browserUpdater, String serverIP) {
         try {
             this.downloadWebSocket = new DownloadWebSocket(
+                    browserUpdater,
                     new URI("wss://" + serverIP + ":" + Constants.TCP_PORT)
             );
 
@@ -121,6 +131,8 @@ public class DownloadClient {
             this.downloadWebSocket.connectBlocking(2000, TimeUnit.MILLISECONDS);
         } catch (Exception e) {
             e.printStackTrace();
+
+            browserUpdater.makeMessages("Unable to connect to server");
         }
 
     }
