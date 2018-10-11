@@ -61,18 +61,18 @@ public class BrowseActivity extends AppCompatActivity
                 // get previous path and remove if from the path list
                 String path = this.pathList.remove(this.pathList.size() - 1);
 
-                new BrowseAsyncTask(this, serverIP).execute(path);
+                new BrowseAsyncTask(this, serverIP, false).execute(path);
 
                 pathTextView.setText(path);
             }
         });
 
         refreshButton.setOnClickListener(v -> {
-            new BrowseAsyncTask(this, serverIP).execute(pathTextView.getText().toString());
+            new BrowseAsyncTask(this, serverIP, false).execute(pathTextView.getText().toString());
         });
 
 
-        new BrowseAsyncTask(this, serverIP).execute("");
+        new BrowseAsyncTask(this, serverIP, false).execute("");
 
         pathList = new ArrayList<>(10);
         
@@ -104,7 +104,7 @@ public class BrowseActivity extends AppCompatActivity
             Check if the folder which was update is of importance to the current folder
              */
             if (pathTextView.getText().toString().contains(pathToUpdate)) {
-                new BrowseAsyncTask(this, serverIP).execute(pathTextView.getText().toString());
+                new BrowseAsyncTask(this, serverIP, false).execute(pathTextView.getText().toString());
             }
         });
     }
@@ -118,7 +118,7 @@ public class BrowseActivity extends AppCompatActivity
 
     @Override
     public void onFileDelete(FileRowData file, View v) {
-        new BrowseAsyncTask(this, serverIP).execute(file.getPath());
+        new BrowseAsyncTask(this, serverIP, true).execute(file.getPath());
     }
 
     @Override
@@ -131,7 +131,7 @@ public class BrowseActivity extends AppCompatActivity
         pathList.add(file.getParent());
         pathTextView.setText(file.getPath());
 
-        new BrowseAsyncTask(this, serverIP).execute(file.getPath());
+        new BrowseAsyncTask(this, serverIP, false).execute(file.getPath());
     }
 }
 

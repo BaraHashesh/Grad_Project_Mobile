@@ -10,10 +10,12 @@ public class BrowseAsyncTask extends AsyncTask<String, String, String> {
     private BrowserUpdater activity;
     private String serverIP;
     private static BrowsingClient browsingClient;
+    private boolean deleteMode;
 
-    public BrowseAsyncTask(BrowserUpdater activity, String IP) {
+    public BrowseAsyncTask(BrowserUpdater activity, String IP, boolean deleteMode) {
         this.activity=activity;
         this.serverIP = IP;
+        this.deleteMode = deleteMode;
     }
 
     @Override
@@ -24,7 +26,10 @@ public class BrowseAsyncTask extends AsyncTask<String, String, String> {
         if(browsingClient == null)
             browsingClient = new BrowsingClient(activity,this.serverIP);
 
-        browsingClient.browse(strings[0]);
+        if(!deleteMode)
+            browsingClient.browse(strings[0]);
+        else
+            browsingClient.delete(strings[0]);
 
         return "";
     }

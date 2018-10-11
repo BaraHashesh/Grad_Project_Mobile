@@ -9,6 +9,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.nio.ByteBuffer;
 
 /**
@@ -143,11 +144,15 @@ public class FileTransfer {
              */
             if (currentBasicFileData.isDirectory())
                 currentFile.mkdirs();
-            else
+            else {
+                currentFile.createNewFile();
                 this.currentFileOutputStream = new FileOutputStream(currentFile);
+            }
 
             this.currentFileSize = 0;
         } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
             e.printStackTrace();
         }
     }
