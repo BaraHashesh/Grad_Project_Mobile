@@ -18,7 +18,9 @@ import com.grad_project_mobile.AsyncTasks.UploadAsyncTask;
 import com.grad_project_mobile.R;
 import com.grad_project_mobile.adapters.FileInfoAdapter;
 import com.grad_project_mobile.client.models.models.FileRowData;
+import com.obsez.android.lib.filechooser.ChooserDialog;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
 
@@ -27,6 +29,7 @@ public class BrowseActivity extends AppCompatActivity
 
     private final int FILE_REQUEST_CODE = 10;
     private final int FOLDER_REQUEST_CODE = 20;
+    private BrowserUpdater browserUpdater;
 
     RecyclerView recyclerView;
     FileInfoAdapter fileInfoAdapter;
@@ -36,37 +39,11 @@ public class BrowseActivity extends AppCompatActivity
     String downloadPath;
 
     @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        /*
-        Check if file pick request
-         */
-        if (requestCode == this.FILE_REQUEST_CODE) {
-            /*
-            Check if request was completed
-             */
-            if (resultCode == Activity.RESULT_OK) {
-                new UploadAsyncTask(this, serverIP)
-                        .execute(data.getDataString(), pathTextView.getText().toString());
-            }
-        }
-        /*
-        Check if folder pick request
-         */
-        else if (requestCode == this.FOLDER_REQUEST_CODE) {
-            /*
-            Check if request was completed
-             */
-            if (resultCode == Activity.RESULT_OK) {
-                new UploadAsyncTask(this, serverIP)
-                        .execute(data.getDataString(), pathTextView.getText().toString());
-            }
-        }
-    }
-
-    @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_browse);
+
+        browserUpdater = this;
 
         Button refreshButton = findViewById(R.id.browser_activity_refresh_button);
         Button backButton = findViewById(R.id.browser_activity_back_button);
@@ -114,17 +91,31 @@ public class BrowseActivity extends AppCompatActivity
         downloadPath = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).toString() + "/";
 
         uploadFileButton.setOnClickListener(v -> {
-            Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
-            intent.setType("file/*");
-            startActivityForResult(intent, FILE_REQUEST_CODE);
+            new ChooserDialog().with(this)
+                    .withStartFile(downloadPath)
+                    .withChosenListener((path, pathFile) ->
+                            new UploadAsyncTask(browserUpdater, serverIP)
+                            .execute(pathFile.getAbsolutePath(),
+                                    pathTextView.getText().toString())
+
+                    )
+                    .build()
+                    .show();
         });
 
         uploadFolderButton.setOnClickListener(v -> {
-            Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT_TREE);
-            startActivityForResult(intent, FOLDER_REQUEST_CODE);
-        });
-        //// TODO: 10/4/18 Add upload function
+            new ChooserDialog().with(this)
+                    .withFilter(true, false)
+                    .withStartFile(downloadPath)
+                    .withChosenListener((path, pathFile) ->
+                            new UploadAsyncTask(browserUpdater, serverIP)
+                                    .execute(pathFile.getAbsolutePath(),
+                                            pathTextView.getText().toString())
 
+                    )
+                    .build()
+                    .show();
+        });
     }
 
     @Override
