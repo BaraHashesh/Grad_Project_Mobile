@@ -1,5 +1,6 @@
 package com.grad_project_mobile.client.models.connection;
 
+import com.grad_project_mobile.activities.BrowserUpdater;
 import com.grad_project_mobile.client.models.models.FileRowData;
 import com.grad_project_mobile.shared.Constants;
 import com.grad_project_mobile.shared.FileTransfer;
@@ -21,13 +22,23 @@ import java.util.concurrent.TimeUnit;
 class UploadWebSocket extends WebSocketClient {
 
     private File fileToUpload;
+    private BrowserUpdater browserUpdater;
 
+    /**
+     * Constructor for {@link UploadWebSocket}
+     * @param browserUpdater The browser that request upload action
+     * @param serverUri The URI of the server
+     */
+    UploadWebSocket(BrowserUpdater browserUpdater, URI serverUri) {
+        this(serverUri);
+        this.browserUpdater = browserUpdater;
+    }
     /**
      * Constructor for the {@link UploadWebSocket}
      *
      * @param serverUri Is the server URI
      */
-    UploadWebSocket(URI serverUri) {
+    private UploadWebSocket(URI serverUri) {
         super(serverUri);
     }
 
@@ -58,7 +69,7 @@ class UploadWebSocket extends WebSocketClient {
         Check if error message
          */
         else if (responseMessage.isErrorMessage()) {
-
+            this.browserUpdater.makeMessages("Unable to upload file/folder");
         }
     }
 
@@ -93,9 +104,10 @@ public class UploadClient {
      *
      * @param serverIP Is the server IP
      */
-    public UploadClient(String serverIP) {
+    public UploadClient(BrowserUpdater browserUpdater, String serverIP) {
         try {
             this.uploadWebSocket = new UploadWebSocket(
+                    browserUpdater,
                     new URI("wss://" + serverIP + ":" + Constants.TCP_PORT)
             );
 

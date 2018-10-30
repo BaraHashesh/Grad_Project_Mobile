@@ -12,6 +12,9 @@
 
     <string name="browser_activity_back_button">Back</string>
     <string name="browser_activity_refresh_button">Refresh</string>
+
+    <string name="browser_activity_upload_file_button">Upload File</string>
+    <string name="browser_activity_upload_folder_button">Upload Folder</string>
 </resources>
 
 
